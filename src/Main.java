@@ -13,6 +13,7 @@ public class Main {
     static final int Y_GUESS_Y_SUB = 3;
 
     static final char INPUT_DEVIDER = 'X';
+    static final String INPUT_DEVIDER_COORDINATE = ", ";
 
 
     /**
@@ -20,7 +21,7 @@ public class Main {
      * @param str the string input
      * @return the int array
      */
-    public static int[] parseInput(String str) {
+    public static int[] parseNumXNum(String str) {
         int i = 0;
         for (i = 0; i < str.length(); i++) {
             if (str.charAt(i) == INPUT_DEVIDER) {
@@ -38,10 +39,30 @@ public class Main {
         return ret;
     }
 
+    public static int[] parseCoordinateOrientation(String str) {
+        int i = 0;
+        int found = 0;
+        int ret[] = new int[3];
+        int prev = 0;
+
+        while (found < 2){
+            if (str.substring(i, i + 2).equals(INPUT_DEVIDER_COORDINATE)) {
+                ret[found++] = Integer.parseInt(str.substring(prev, i));
+                prev = i + 2;
+            }
+
+            i++;
+        }
+
+        ret[found] = Integer.parseInt(str.substring(prev, str.length()));
+
+        return ret;
+    }
+
     public static int[] inputAndParseBoardSize() {
         System.out.println("Enter the board size");
         String sizeAsString = scanner.nextLine();
-        return parseInput(sizeAsString);
+        return parseNumXNum(sizeAsString);
     }
 
     public static int getBiggestInArray(int[] arr) {
@@ -66,14 +87,13 @@ public class Main {
         for(int i = 0; i < subSizesString.length(); i++) {
             char currentChar = subSizesString.charAt(i);
             if(currentChar == ' ') {
-                System.out.println("i: " + i);
-                int[] parseInputValue = parseInput(subSizesString.substring(wordStart, i));
-                subSizes[parseInputValue[1]] = parseInputValue[0];
+                int[] parseNumXNumValue = parseNumXNum(subSizesString.substring(wordStart, i));
+                subSizes[parseNumXNumValue[1]] = parseNumXNumValue[0];
                 wordStart = i + 1;
             }
         }
-        int[] parseInputValue = parseInput(subSizesString.substring(wordStart, subSizesString.length()));
-        subSizes[parseInputValue[1]] = parseInputValue[0];
+        int[] parseNumXNumValue = parseNumXNum(subSizesString.substring(wordStart, subSizesString.length()));
+        subSizes[parseNumXNumValue[1]] = parseNumXNumValue[0];
         return subSizes;
     }
 
@@ -92,7 +112,10 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        initBoard();
+        int[] arr = parseCoordinateOrientation("10, 2, 0");
+        for (int i = 0; i < 3; i++) {
+            System.out.println(arr[i]);
+        }
     }
 
     /*public static void main(String[] args) throws IOException {
