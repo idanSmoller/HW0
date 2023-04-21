@@ -79,6 +79,8 @@ public class Main {
         return boardSize[0] > boardSize[1] ? boardSize[0] : boardSize[1];
     }
 
+    //nothing
+
     public static int[] inputAndParseSubSizes(int[] boardSize) {
         int[] subSizes = new int[getSubSizesArrLength(boardSize)];
         System.out.println("Enter the battleship sizes");
