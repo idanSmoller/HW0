@@ -79,8 +79,6 @@ public class Main {
         return boardSize[0] > boardSize[1] ? boardSize[0] : boardSize[1];
     }
 
-    //nothing
-
     public static int[] inputAndParseSubSizes(int[] boardSize) {
         int[] subSizes = new int[getSubSizesArrLength(boardSize)];
         System.out.println("Enter the battleship sizes");
@@ -117,8 +115,25 @@ public class Main {
         if (sub[sub[SUB_INDEX_ORIENTATION] ^ 1] + size >
                 (sub[SUB_INDEX_ORIENTATION] == ORIENTATION_HORIZONTAL ? board[0].length : board.length)) {
             System.out.println("Battleship exceeds the boundaries of the board, try again!");
+            //TODO: did you meant to return false?
         }
-        //TODO: not on or near another sub
+        if(sub[SUB_INDEX_ORIENTATION] == ORIENTATION_HORIZONTAL) {
+            for(int i = 0; i < size; i++){
+                if(board[sub[SUB_INDEX_X + i]][sub[SUB_INDEX_Y]] == N_GUESS_Y_SUB) {
+                    System.out.println("Battleship overlaps another battleship");
+                    return false;
+                }
+            }
+        }
+        else{
+            for(int i = 0; i < size; i++){
+                if(board[sub[SUB_INDEX_X]][sub[SUB_INDEX_Y + i]] == N_GUESS_Y_SUB) {
+                    System.out.println("Battleship overlaps another battleship");
+                    return false;
+                }
+            }
+        }
+        //TODO: not near another sub
 
         return true;
     }
