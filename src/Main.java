@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -12,8 +13,17 @@ public class Main {
     static final int Y_GUESS_N_SUB = 2;
     static final int Y_GUESS_Y_SUB = 3;
 
-    static final char INPUT_DEVIDER = 'X';
-    static final String INPUT_DEVIDER_COORDINATE = ", ";
+    static final char INPUT_DIVIDER = 'X';
+    static final String INPUT_DIVIDER_COORDINATE = ", ";
+
+    static final int SUB_INDEX_X = 0;
+    static final int SUB_INDEX_Y = 1;
+    static final int SUB_INDEX_ORIENTATION = 2;
+    static final int ORIENTATION_HORIZONTAL = 0;
+    static final int ORIENTATION_VERTICAL = 1;
+
+    static final int BOARD_INDEX_PLAYER = 0;
+    static final int BOARD_INDEX_COMP = 1;
 
 
     /**
@@ -24,7 +34,7 @@ public class Main {
     public static int[] parseNumXNum(String str) {
         int i = 0;
         for (i = 0; i < str.length(); i++) {
-            if (str.charAt(i) == INPUT_DEVIDER) {
+            if (str.charAt(i) == INPUT_DIVIDER) {
                 break;
             }
         }
@@ -46,7 +56,7 @@ public class Main {
         int prev = 0;
 
         while (found < 2){
-            if (str.substring(i, i + 2).equals(INPUT_DEVIDER_COORDINATE)) {
+            if (str.substring(i, i + 2).equals(INPUT_DIVIDER_COORDINATE)) {
                 ret[found++] = Integer.parseInt(str.substring(prev, i));
                 prev = i + 2;
             }
@@ -65,18 +75,8 @@ public class Main {
         return parseNumXNum(sizeAsString);
     }
 
-    public static int getBiggestInArray(int[] arr) {
-        int max = arr[0];
-        for(int i = 1; i < arr.length; i++) {
-            if(arr[i] > max) {
-                max = arr[i];
-            }
-        }
-        return max;
-    }
-
     public static int getSubSizesArrLength(int[] boardSize) {
-        return getBiggestInArray(boardSize) + 1;
+        return boardSize[0] > boardSize[1] ? boardSize[0] : boardSize[1];
     }
 
     public static int[] inputAndParseSubSizes(int[] boardSize) {
@@ -97,14 +97,56 @@ public class Main {
         return subSizes;
     }
 
+    public static int[] inputAndParseCoordinatesOrientation(int size) {
+        System.out.println("Enter location and orientation for battleship of size " + size);
+        return parseCoordinateOrientation(scanner.nextLine());
+    }
+
+    public static boolean checkValidSub(int[][] board, int[] sub, int size) {
+        if (sub[SUB_INDEX_ORIENTATION] != ORIENTATION_HORIZONTAL && sub[SUB_INDEX_ORIENTATION] != ORIENTATION_VERTICAL) {
+            System.out.println("Illegal orientation, try again!");
+            return false;
+        }
+        if (sub[SUB_INDEX_X] >= board[0].length || sub[SUB_INDEX_X] < 0 ||
+                sub[SUB_INDEX_Y] >= board.length || sub[SUB_INDEX_Y] < 0) {
+            System.out.println("Illegal tile, try again!");
+            return false;
+        }
+        if (sub[sub[SUB_INDEX_ORIENTATION] ^ 1] + size >
+                (sub[SUB_INDEX_ORIENTATION] == ORIENTATION_HORIZONTAL ? board[0].length : board.length)) {
+            System.out.println("Battleship exceeds the boundaries of the board, try again!");
+        }
+        //TODO: not on or near another sub
+
+        return true;
+    }
+
+    public static void placeSub(int[][] board, int[] sub) {
+        //TODO: the function
+    }
+
+    public static void inputSubs(int[][][] board, int[] subSizes) {
+        int[] sub = new int[3];
+        for (int i = 1; i < subSizes.length; i++) {
+            while (subSizes[i] != 0) {
+                do {
+                    sub = inputAndParseCoordinatesOrientation(i);
+                } while (!checkValidSub(board[BOARD_INDEX_PLAYER], sub, i));
+
+                placeSub(board[BOARD_INDEX_PLAYER], sub);
+                subSizes[i]--;
+            }
+        }
+    }
+
     public static int[][][] initBoard() {
         int[] boardSize = inputAndParseBoardSize();
+        int[][][] board = new int[2][boardSize[0]][boardSize[1]];
         int[] subSizes = inputAndParseSubSizes(boardSize);
-        for(int i = 0; i < subSizes.length; i++) {
-            System.out.println(subSizes[i] + " subs in size " + i);
-        }
-        int[][][] check = new int[1][1][1];
-        return check;
+
+        inputSubs(board, subSizes);
+
+        return board;
     }
 
     public static void battleshipGame() {
