@@ -173,7 +173,7 @@ public class Main {
      * check if a sub can be placed on the board
      *
      * @param board the board
-     * @param sub the sub which the player wants to place
+     * @param sub   the sub which the player wants to place
      * @param size  the sub size
      * @return whether the sub can be legally placed in the wanted place
      */
@@ -212,15 +212,21 @@ public class Main {
 
     /**
      * place a sub on the board (we assume that the spot for the sub is valid
+     *
      * @param board the board
      * @param sub   the sub we wish to place
+     * @param size  the sub size
      */
-    public static void placeSub(int[][] board, int[] sub) {
-        // TODO: the function
+    public static void placeSub(int[][] board, int[] sub, int size) {
+        for (int i = 0; i < size; i++) {
+            board[sub[SUB_INDEX_X] + sub[SUB_INDEX_ORIENTATION] == ORIENTATION_HORIZONTAL ? i : 0]
+                    [sub[SUB_INDEX_Y] + sub[SUB_INDEX_ORIENTATION] == ORIENTATION_VERTICAL ? i : 0] = N_GUESS_Y_SUB;
+        }
     }
 
     /**
      * input subs and place them on the board
+     *
      * @param board    the board
      * @param subSizes the sub sizes in the current game
      */
@@ -232,7 +238,7 @@ public class Main {
                     sub = inputAndParseCoordinatesOrientation(i);
                 } while (!checkValidSub(board[BOARD_INDEX_PLAYER], sub, i));
 
-                placeSub(board[BOARD_INDEX_PLAYER], sub);
+                placeSub(board[BOARD_INDEX_PLAYER], sub, i);
                 subSizes[i]--;
             }
         }
@@ -240,6 +246,7 @@ public class Main {
 
     /**
      * initialize the boards for the player and the computer - input subs and place them on the board
+     *
      * @return the created board
      */
     public static int[][][] initBoard() {
