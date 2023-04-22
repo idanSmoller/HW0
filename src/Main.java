@@ -55,7 +55,7 @@ public class Main {
         int ret[] = new int[3];
         int prev = 0;
 
-        while (found < 2){
+        while (found < 2) {
             if (str.substring(i, i + 2).equals(INPUT_DIVIDER_COORDINATE)) {
                 ret[found++] = Integer.parseInt(str.substring(prev, i));
                 prev = i + 2;
@@ -84,9 +84,9 @@ public class Main {
         System.out.println("Enter the battleship sizes");
         String subSizesString = scanner.nextLine();
         int wordStart = 0;
-        for(int i = 0; i < subSizesString.length(); i++) {
+        for (int i = 0; i < subSizesString.length(); i++) {
             char currentChar = subSizesString.charAt(i);
-            if(currentChar == ' ') {
+            if (currentChar == ' ') {
                 int[] parseNumXNumValue = parseNumXNum(subSizesString.substring(wordStart, i));
                 subSizes[parseNumXNumValue[1]] = parseNumXNumValue[0];
                 wordStart = i + 1;
@@ -102,8 +102,30 @@ public class Main {
         return parseCoordinateOrientation(scanner.nextLine());
     }
 
+    public static boolean notOverlapping(int[][] board, int x, int y) {
+        return board[x][y] != N_GUESS_N_SUB;
+    }
+
+    public static boolean validSurrounding(int[][] board, int x, int y) {
+        boolean rightEdge = x == board[0].length;
+        boolean leftEdge = x == 0;
+        boolean bottomEdge = y == board.length;
+        boolean topEdge = y == 0;
+
+        for (int i = leftEdge ? x : x - 1; i < (rightEdge ? x : x + 1); i++) {
+            for (int j = topEdge ? x : x - 1; j < (bottomEdge ? x : x + 1); j++) {
+                if (board[i][j] == N_GUESS_Y_SUB) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
     public static boolean checkValidSub(int[][] board, int[] sub, int size) {
-        if (sub[SUB_INDEX_ORIENTATION] != ORIENTATION_HORIZONTAL && sub[SUB_INDEX_ORIENTATION] != ORIENTATION_VERTICAL) {
+        if (sub[SUB_INDEX_ORIENTATION] != ORIENTATION_HORIZONTAL &&
+                sub[SUB_INDEX_ORIENTATION] != ORIENTATION_VERTICAL) {
             System.out.println("Illegal orientation, try again!");
             return false;
         }
@@ -115,35 +137,31 @@ public class Main {
         if (sub[sub[SUB_INDEX_ORIENTATION] ^ 1] + size >
                 (sub[SUB_INDEX_ORIENTATION] == ORIENTATION_HORIZONTAL ? board[0].length : board.length)) {
             System.out.println("Battleship exceeds the boundaries of the board, try again!");
-            //TODO: did you meant to return false?
+            return false;
         }
-        if(sub[SUB_INDEX_ORIENTATION] == ORIENTATION_HORIZONTAL) {
-            for(int i = 0; i < size; i++){
-                if(board[sub[SUB_INDEX_X + i]][sub[SUB_INDEX_Y]] == N_GUESS_Y_SUB) {
-                    System.out.println("Battleship overlaps another battleship");
-                    return false;
-                }
+
+        for (int i = 0; i < size; i++) {
+            int currLocationX = sub[SUB_INDEX_X] + sub[SUB_INDEX_ORIENTATION] == ORIENTATION_HORIZONTAL ? i : 0;
+            int currLocationY = sub[SUB_INDEX_Y] + sub[SUB_INDEX_ORIENTATION] == ORIENTATION_VERTICAL ? i : 0;
+
+            if (!notOverlapping(board, currLocationX, currLocationY)) {
+                System.out.println("Battleship overlaps another battleship, try again!");
+                return false;
+            }
+            if (!validSurrounding(board, currLocationX, currLocationY)) {
+                return false;
             }
         }
-        else{
-            for(int i = 0; i < size; i++){
-                if(board[sub[SUB_INDEX_X]][sub[SUB_INDEX_Y + i]] == N_GUESS_Y_SUB) {
-                    System.out.println("Battleship overlaps another battleship");
-                    return false;
-                }
-            }
-        }
-        //TODO: not near another sub
 
         return true;
     }
 
     public static void placeSub(int[][] board, int[] sub) {
-        //TODO: the function
+        // TODO: the function
     }
 
     public static void inputSubs(int[][][] board, int[] subSizes) {
-        int[] sub = new int[3];
+        int[] sub;
         for (int i = 1; i < subSizes.length; i++) {
             while (subSizes[i] != 0) {
                 do {
