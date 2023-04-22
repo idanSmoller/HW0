@@ -28,6 +28,7 @@ public class Main {
 
     /**
      * parse string input in format "num1Xnum2" into int array in format [num1, num2]
+     *
      * @param str the string input
      * @return the int array
      */
@@ -49,6 +50,12 @@ public class Main {
         return ret;
     }
 
+    /**
+     * parse string input in format "x, y, orientation" into an int array in format [x, y, orientation]
+     *
+     * @param str the string input
+     * @return the formatted int array
+     */
     public static int[] parseCoordinateOrientation(String str) {
         int i = 0;
         int found = 0;
@@ -69,16 +76,33 @@ public class Main {
         return ret;
     }
 
+    /**
+     * input and parse the board size
+     *
+     * @return the board size as an int array of size 2
+     */
     public static int[] inputAndParseBoardSize() {
         System.out.println("Enter the board size");
         String sizeAsString = scanner.nextLine();
         return parseNumXNum(sizeAsString);
     }
 
+    /**
+     * get the maximum possible size of a sub (the largest side of the board)
+     *
+     * @param boardSize the board size
+     * @return the maximum size for a sub
+     */
     public static int getSubSizesArrLength(int[] boardSize) {
         return boardSize[0] > boardSize[1] ? boardSize[0] : boardSize[1];
     }
 
+    /**
+     * input and parse the sub sizes
+     *
+     * @param boardSize the board size
+     * @return the sub sizes as a histogram (value x in the nth spot in the array means x n sized subs will be in the game
+     */
     public static int[] inputAndParseSubSizes(int[] boardSize) {
         int[] subSizes = new int[getSubSizesArrLength(boardSize)];
         System.out.println("Enter the battleship sizes");
@@ -97,15 +121,37 @@ public class Main {
         return subSizes;
     }
 
+    /**
+     * input and parse the location and the orientation of a sub
+     *
+     * @param size the size of the sub
+     * @return the sub as an array of size 3: [x, y, orientation] (x and y of the top left corner of the sub)
+     */
     public static int[] inputAndParseCoordinatesOrientation(int size) {
         System.out.println("Enter location and orientation for battleship of size " + size);
         return parseCoordinateOrientation(scanner.nextLine());
     }
 
+    /**
+     * check if the tile (x, y) in the board is currently empty
+     *
+     * @param board the board
+     * @param x     the x coordinate
+     * @param y     the y coordinate
+     * @return whether the spot is available or not
+     */
     public static boolean notOverlapping(int[][] board, int x, int y) {
         return board[x][y] != N_GUESS_N_SUB;
     }
 
+    /**
+     * check if the surrounding of a given tile is empty
+     *
+     * @param board the board
+     * @param x     the tile's x coordinate
+     * @param y     the tile's x coordinate
+     * @return whether the tile's surrounding is valid for sub placement or not
+     */
     public static boolean validSurrounding(int[][] board, int x, int y) {
         boolean rightEdge = x == board[0].length;
         boolean leftEdge = x == 0;
@@ -123,6 +169,14 @@ public class Main {
         return true;
     }
 
+    /**
+     * check if a sub can be placed on the board
+     *
+     * @param board the board
+     * @param sub the sub which the player wants to place
+     * @param size  the sub size
+     * @return whether the sub can be legally placed in the wanted place
+     */
     public static boolean checkValidSub(int[][] board, int[] sub, int size) {
         if (sub[SUB_INDEX_ORIENTATION] != ORIENTATION_HORIZONTAL &&
                 sub[SUB_INDEX_ORIENTATION] != ORIENTATION_VERTICAL) {
@@ -156,10 +210,20 @@ public class Main {
         return true;
     }
 
+    /**
+     * place a sub on the board (we assume that the spot for the sub is valid
+     * @param board the board
+     * @param sub   the sub we wish to place
+     */
     public static void placeSub(int[][] board, int[] sub) {
         // TODO: the function
     }
 
+    /**
+     * input subs and place them on the board
+     * @param board    the board
+     * @param subSizes the sub sizes in the current game
+     */
     public static void inputSubs(int[][][] board, int[] subSizes) {
         int[] sub;
         for (int i = 1; i < subSizes.length; i++) {
@@ -174,6 +238,10 @@ public class Main {
         }
     }
 
+    /**
+     * initialize the boards for the player and the computer - input subs and place them on the board
+     * @return the created board
+     */
     public static int[][][] initBoard() {
         int[] boardSize = inputAndParseBoardSize();
         int[][][] board = new int[2][boardSize[0]][boardSize[1]];
@@ -184,8 +252,13 @@ public class Main {
         return board;
     }
 
+    /**
+     * play a battleship game between a player and a computer
+     */
     public static void battleshipGame() {
         int[][][] board = initBoard();
+
+        // TODO: finish this function
     }
 
     public static void main(String[] args) {
