@@ -1,6 +1,3 @@
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -24,6 +21,7 @@ public class Main {
 
     static final int BOARD_INDEX_PLAYER = 0;
     static final int BOARD_INDEX_COMP = 1;
+    private static int[] playerSub;
 
 
     /**
@@ -175,22 +173,29 @@ public class Main {
      * @param board the board
      * @param sub   the sub which the player wants to place
      * @param size  the sub size
+     * @param mute  whether to print the error messages or not
      * @return whether the sub can be legally placed in the wanted place
      */
-    public static boolean checkValidSub(int[][] board, int[] sub, int size) {
+    public static boolean checkValidSub(int[][] board, int[] sub, int size, boolean mute) {
         if (sub[SUB_INDEX_ORIENTATION] != ORIENTATION_HORIZONTAL &&
                 sub[SUB_INDEX_ORIENTATION] != ORIENTATION_VERTICAL) {
-            System.out.println("Illegal orientation, try again!");
+            if (!mute) {
+                System.out.println("Illegal orientation, try again!");
+            }
             return false;
         }
         if (sub[SUB_INDEX_X] >= board[0].length || sub[SUB_INDEX_X] < 0 ||
                 sub[SUB_INDEX_Y] >= board.length || sub[SUB_INDEX_Y] < 0) {
-            System.out.println("Illegal tile, try again!");
+            if (!mute) {
+                System.out.println("Illegal tile, try again!");
+            }
             return false;
         }
         if (sub[sub[SUB_INDEX_ORIENTATION] ^ 1] + size >
                 (sub[SUB_INDEX_ORIENTATION] == ORIENTATION_HORIZONTAL ? board[0].length : board.length)) {
-            System.out.println("Battleship exceeds the boundaries of the board, try again!");
+            if (!mute) {
+                System.out.println("Battleship exceeds the boundaries of the board, try again!");
+            }
             return false;
         }
 
@@ -199,10 +204,15 @@ public class Main {
             int currLocationY = sub[SUB_INDEX_Y] + sub[SUB_INDEX_ORIENTATION] == ORIENTATION_VERTICAL ? i : 0;
 
             if (!notOverlapping(board, currLocationX, currLocationY)) {
-                System.out.println("Battleship overlaps another battleship, try again!");
+                if (!mute) {
+                    System.out.println("Battleship overlaps another battleship, try again!");
+                }
                 return false;
             }
             if (!validSurrounding(board, currLocationX, currLocationY)) {
+                if (!mute) {
+                    System.out.println("Adjacent battleship detected, try again!");
+                }
                 return false;
             }
         }
@@ -225,20 +235,60 @@ public class Main {
     }
 
     /**
+     * get a valid sub for the computer player (random)
+     *
+     * @param board the computer's board
+     * @param size  the size of the generated sub
+     * @return the created sub
+     */
+    public static int[] getComputerSub(int[][] board, int size) {
+        int[] sub = new int[3];
+        int m = board[0].length;
+        int n = board.length;
+
+        do {
+            sub[0] = rnd.nextInt(m);
+            sub[1] = rnd.nextInt(n);
+            sub[2] = rnd.nextInt(2);
+        } while (!checkValidSub(board, sub, size, true));
+
+        return sub;
+    }
+
+    /**
+     * get a valid sub for the human player (input)
+     *
+     * @param board the computer's board
+     * @param size  the size of the generated sub
+     * @return the created sub
+     */
+    public static int[] getPlayerSub(int[][] board, int size) {
+        int[] sub;
+        do {
+            sub = inputAndParseCoordinatesOrientation(size);
+
+        } while (!checkValidSub(board, sub, size, false));
+
+        return sub;
+    }
+
+    /**
      * input subs and place them on the board
      *
      * @param board    the board
      * @param subSizes the sub sizes in the current game
      */
     public static void inputSubs(int[][][] board, int[] subSizes) {
-        int[] sub;
+        int[] playerSub;
+        int[] computerSub;
+
         for (int i = 1; i < subSizes.length; i++) {
             while (subSizes[i] != 0) {
-                do {
-                    sub = inputAndParseCoordinatesOrientation(i);
-                } while (!checkValidSub(board[BOARD_INDEX_PLAYER], sub, i));
+                playerSub = getPlayerSub(board[BOARD_INDEX_PLAYER], i);
+                computerSub = getComputerSub(board[BOARD_INDEX_COMP], i);
 
-                placeSub(board[BOARD_INDEX_PLAYER], sub, i);
+                placeSub(board[BOARD_INDEX_PLAYER], playerSub, i);
+                placeSub(board[BOARD_INDEX_COMP], computerSub, i);
                 subSizes[i]--;
             }
         }
