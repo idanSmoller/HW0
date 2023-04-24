@@ -75,6 +75,32 @@ public class Main {
     }
 
     /**
+     * parse string input in format "x, y" into an int array in format [x, y]
+     *
+     * @param str the string input
+     * @return the formatted int array
+     */
+    public static int[] parseCoordinate(String str) {
+        int i = 0;
+        int found = 0;
+        int ret[] = new int[2];
+        int prev = 0;
+
+        while (found < 2) {
+            if (str.substring(i, i + 2).equals(INPUT_DIVIDER_COORDINATE)) {
+                ret[found++] = Integer.parseInt(str.substring(prev, i));
+                prev = i + 2;
+            }
+
+            i++;
+        }
+
+        ret[found] = Integer.parseInt(str.substring(prev, str.length()));
+
+        return ret;
+    }
+
+    /**
      * input and parse the board size
      *
      * @return the board size as an int array of size 2
@@ -120,6 +146,16 @@ public class Main {
     }
 
     /**
+     * input and parse the location of a guess
+     *
+     * @return the sub as an array of size 2: [x, y]
+     */
+    public static int[] inputAndParseCoordinates() {
+        System.out.println("Enter a tile to attack");
+        return parseCoordinate(scanner.nextLine());
+    }
+
+    /**
      * input and parse the location and the orientation of a sub
      *
      * @param size the size of the sub
@@ -139,7 +175,7 @@ public class Main {
      * @return whether the spot is available or not
      */
     public static boolean notOverlapping(int[][] board, int x, int y) {
-        return board[x][y] != N_GUESS_N_SUB;
+        return board[y][x] != N_GUESS_N_SUB;
     }
 
     /**
@@ -158,10 +194,27 @@ public class Main {
 
         for (int i = leftEdge ? x : x - 1; i < (rightEdge ? x : x + 1); i++) {
             for (int j = topEdge ? x : x - 1; j < (bottomEdge ? x : x + 1); j++) {
-                if (board[i][j] == N_GUESS_Y_SUB) {
+                if (board[j][i] == N_GUESS_Y_SUB) {
                     return false;
                 }
             }
+        }
+
+        return true;
+    }
+
+    public static boolean guessed(int tile) {
+        return tile == Y_GUESS_N_SUB || tile == Y_GUESS_Y_SUB;
+    }
+
+    public static boolean checkValidAttackTile(int[][] board, int x, int y) {
+        if (x >= 0 && x < board[0].length && y >= 0 && y < board.length) {
+            System.out.println("Illegal tile, try again!");
+            return false;
+        }
+        if (guessed(board[y][x])) {
+            System.out.println("Tile already attacked, try again!");
+            return false;
         }
 
         return true;
@@ -229,8 +282,8 @@ public class Main {
      */
     public static void placeSub(int[][] board, int[] sub, int size) {
         for (int i = 0; i < size; i++) {
-            board[sub[SUB_INDEX_X] + sub[SUB_INDEX_ORIENTATION] == ORIENTATION_HORIZONTAL ? i : 0]
-                    [sub[SUB_INDEX_Y] + sub[SUB_INDEX_ORIENTATION] == ORIENTATION_VERTICAL ? i : 0] = N_GUESS_Y_SUB;
+            board[sub[SUB_INDEX_Y] + sub[SUB_INDEX_ORIENTATION] == ORIENTATION_VERTICAL ? i : 0]
+                    [sub[SUB_INDEX_X] + sub[SUB_INDEX_ORIENTATION] == ORIENTATION_HORIZONTAL ? i : 0] = N_GUESS_Y_SUB;
         }
     }
 
@@ -336,24 +389,37 @@ public class Main {
         for (int i = 0; i < board.length; i++) {
             System.out.print(Integer.toString(i));
             for (int j = 0; j < board[0].length; j++) {
-                System.out.print(" " + tileToChar(board[i][j], player));
+                System.out.print(" " + tileToChar(board[j][i], player));
             }
             System.out.println();
         }
+        System.out.println();
+    }
+
+    public static void attackTile(int[][] board, int x, int y) {
+        // TODO
     }
 
     public static void playTurnPlayer(int[][] board) {
-        //TODO
+        System.out.println("Your current guessing board:");
+        printBoard(board, true);
+
+        int[] tile;
+        do {
+            tile = inputAndParseCoordinates();
+        } while (!checkValidAttackTile(board, tile[0], tile[1]));
+
+        attackTile(board, tile[0], tile[1]);
     }
 
     public static void playTurnComputer(int[][] board) {
-        //TODO
+        // TODO
     }
 
     public static boolean isGameOver(int[][] board) {
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[0].length; j++) {
-                if (board[i][j] == N_GUESS_Y_SUB) {
+                if (board[j][i] == N_GUESS_Y_SUB) {
                     return false;
                 }
             }
