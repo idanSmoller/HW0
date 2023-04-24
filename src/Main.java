@@ -309,20 +309,85 @@ public class Main {
         return board;
     }
 
+    public static char tileToChar(int tile, boolean player) {
+        switch (tile) {
+            case N_GUESS_N_SUB:
+                return '-';
+            case N_GUESS_Y_SUB:
+                return player ? '-' : '#';
+            case Y_GUESS_N_SUB:
+                return player ? 'X' : '-';
+            case Y_GUESS_Y_SUB:
+                return player ? 'V' : 'X';
+            default:
+                return 0;
+        }
+    }
+
+    public static void printBoard(int[][] board, boolean player) {
+        System.out.print(" ");
+
+        // print the first row of indexes
+        for (int i = 0; i < board[0].length; i++) {
+            System.out.print(" " + Integer.toString(i));
+        }
+        System.out.println();
+
+        for (int i = 0; i < board.length; i++) {
+            System.out.print(Integer.toString(i));
+            for (int j = 0; j < board[0].length; j++) {
+                System.out.print(" " + tileToChar(board[i][j], player));
+            }
+            System.out.println();
+        }
+    }
+
+    public static void playTurnPlayer(int[][] board) {
+        //TODO
+    }
+
+    public static void playTurnComputer(int[][] board) {
+        //TODO
+    }
+
+    public static boolean isGameOver(int[][] board) {
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[0].length; j++) {
+                if (board[i][j] == N_GUESS_Y_SUB) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public static void playGame(int[][][] board) {
+        while (true) {
+            playTurnPlayer(board[BOARD_INDEX_COMP]);
+            if (isGameOver(board[BOARD_INDEX_COMP])) {
+                System.out.println("You won the game!");
+                return;
+            }
+
+            playTurnComputer(board[BOARD_INDEX_PLAYER]);
+            if (isGameOver(board[BOARD_INDEX_PLAYER])) {
+                System.out.println("You lost ):");
+                return;
+            }
+        }
+    }
+
     /**
      * play a battleship game between a player and a computer
      */
     public static void battleshipGame() {
         int[][][] board = initBoard();
 
-        // TODO: finish this function
+        playGame(board);
     }
 
     public static void main(String[] args) {
-        int[] arr = parseCoordinateOrientation("10, 2, 0");
-        for (int i = 0; i < 3; i++) {
-            System.out.println(arr[i]);
-        }
+        System.out.println("lol");
     }
 
     /*public static void main(String[] args) throws IOException {
