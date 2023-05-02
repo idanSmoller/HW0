@@ -1,9 +1,11 @@
+import java.io.File;
+import java.io.IOException;
 import java.util.Random;
 import java.util.Scanner;
 
 public class Main {
-    public static Scanner scanner = new Scanner(System.in);    // delete to what scanner equal when finish
-    public static Random rnd = new Random();
+    public static Scanner scanner;
+    public static Random rnd;
 
     static final int N_GUESS_N_SUB = 0;
     static final int N_GUESS_Y_SUB = 1;
@@ -535,11 +537,7 @@ public class Main {
         playGame(board, subNums);
     }
 
-    public static void main(String[] args) {
-        battleshipGame();
-    }
-
-    /*public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException {
         String path = args[0];
         scanner = new Scanner(new File(path));
         int numberOfGames = scanner.nextInt();
@@ -559,6 +557,4 @@ public class Main {
         }
         System.out.println("All games are over.");
     }
-
-     */
 }
