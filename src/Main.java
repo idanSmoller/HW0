@@ -85,7 +85,7 @@ public class Main {
         int ret[] = new int[2];
         int prev = 0;
 
-        while (found < 2) {
+        while (found < 1) {
             if (str.substring(i, i + 2).equals(INPUT_DIVIDER_COORDINATE)) {
                 ret[found++] = Integer.parseInt(str.substring(prev, i));
                 prev = i + 2;
@@ -251,15 +251,14 @@ public class Main {
 
         // check sub in boundaries
         if (sub[SUB_INDEX_ORIENTATION] == ORIENTATION_HORIZONTAL) {
-            if(sub[SUB_INDEX_X] + size > board[0].length){
+            if (sub[SUB_INDEX_X] + size > board[0].length) {
                 if (!mute) {
                     System.out.println("Battleship exceeds the boundaries of the board, try again!");
                 }
                 return false;
             }
-        }
-        else{
-            if(sub[SUB_INDEX_Y] + size > board.length){
+        } else {
+            if (sub[SUB_INDEX_Y] + size > board.length) {
                 if (!mute) {
                     System.out.println("Battleship exceeds the boundaries of the board, try again!");
                 }
@@ -303,8 +302,7 @@ public class Main {
         for (int i = 0; i < size; i++) {
             if (sub[SUB_INDEX_ORIENTATION] == ORIENTATION_VERTICAL) {
                 board[sub[SUB_INDEX_Y] + i][sub[SUB_INDEX_X]] = N_GUESS_Y_SUB;
-            }
-            else {
+            } else {
                 board[sub[SUB_INDEX_Y]][sub[SUB_INDEX_X] + i] = N_GUESS_Y_SUB;
             }
         }
@@ -374,15 +372,26 @@ public class Main {
         }
     }
 
+    public static void countSubs(int[] subSizes, int[] subNums) {
+        int sum = 0;
+        for (int size : subSizes) {
+            sum += size;
+        }
+        subNums[0] = sum;
+        subNums[1] = sum;
+    }
+
     /**
      * initialize the boards for the player and the computer - input subs and place them on the board
      *
      * @return the created board
      */
-    public static int[][][] initBoard() {
+    public static int[][][] initBoard(int[] subNums) {
         int[] boardSize = inputAndParseBoardSize();
         int[][][] board = new int[2][boardSize[0]][boardSize[1]];
         int[] subSizes = inputAndParseSubSizes(boardSize);
+
+        countSubs(subSizes, subNums);
 
         inputSubs(board, subSizes);
 
@@ -390,10 +399,11 @@ public class Main {
     }
 
     /**
+     * turns a tile in the board into a printable character
      *
-     * @param tile
+     * @param tile   the tile
      * @param player true if to show the player board, false if to show the comp board
-     * @return
+     * @return the tile as a character to print
      */
     public static char tileToChar(int tile, boolean player) {
         switch (tile) {
@@ -409,12 +419,6 @@ public class Main {
                 return 0;
         }
     }
-
-    /**
-     *
-     * @param board
-     * @param player true if to show the player board, false if to show the comp board
-     */
 
     public static void printBoard(int[][] board, boolean player) {
         // todo: double digit shit
@@ -436,47 +440,85 @@ public class Main {
         System.out.println();
     }
 
-    public static void attackTile(int[][] board, int x, int y) {
-        // TODO
+    public static boolean drownedOneDirection(int[][] board, int x, int y, int incX, int incY) {
+        while (!(x < 0 || x >= board[0].length || y < 0 || y >= board.length)) {
+            if (board[y][x] == N_GUESS_N_SUB || board[y][x] == Y_GUESS_N_SUB) {
+                return true;
+            }
+            if (board[y][x] == N_GUESS_Y_SUB) {
+                return false;
+            }
+
+            x += incX;
+            y += incY;
+        }
+
+        return true;
     }
 
-    public static void playTurnPlayer(int[][] board) {
+    public static boolean drowned(int[][] board, int x, int y) {
+        boolean right = drownedOneDirection(board, x, y, 1, 0);
+        boolean left = drownedOneDirection(board, x, y, -1, 0);
+        boolean up = drownedOneDirection(board, x, y, 0, -1);
+        boolean down = drownedOneDirection(board, x, y, 0, 1);
+
+        return right && left && up && down;
+    }
+
+    public static void attackTile(int[][] board, int x, int y, int[] subNums, boolean player) {
+        if (board[y][x] == N_GUESS_N_SUB) {
+            System.out.println("That is a miss!");
+            board[y][x] = Y_GUESS_N_SUB;
+        } else {
+            int playerIndex = player ? BOARD_INDEX_COMP : BOARD_INDEX_PLAYER;
+            System.out.println("That is a hit!");
+            board[y][x] = Y_GUESS_Y_SUB;
+            if (drowned(board, x, y)) {
+                subNums[playerIndex]--;
+                if (player) {
+                    System.out.println("The computer's battleship has been drowned, " + subNums[playerIndex] + " more battleship to go!");
+                } else {
+                    System.out.println("Your battleship has been drowned, you have left " + subNums[playerIndex] + " more battleships!");
+                }
+            }
+        }
+    }
+
+    public static void playTurnPlayer(int[][] board, int[] subNums) {
         System.out.println("Your current guessing board:");
-        printBoard(board, true);
+        printBoard(board, false);
 
         int[] tile;
         do {
             tile = inputAndParseCoordinates();
         } while (!checkValidAttackTile(board, tile[0], tile[1]));
 
-        attackTile(board, tile[0], tile[1]);
+        attackTile(board, tile[0], tile[1], subNums, true);
     }
 
-    public static void playTurnComputer(int[][] board) {
-        // TODO
+    public static void playTurnComputer(int[][] board, int[] subNums) {
+        int[] tile = new int[2];
+        do {
+            tile[0] = rnd.nextInt(board[0].length);  // generate x coordinate
+            tile[1] = rnd.nextInt(board.length);
+        } while (!checkValidAttackTile(board, tile[0], tile[1]));
+        System.out.println("The computer attacked (" + tile[0] + ", " + tile[1] + ")");
+        attackTile(board, tile[0], tile[1], subNums, false);
+        System.out.println("Your current game board:");
+        printBoard(board, true);
+
     }
 
-    public static boolean isGameOver(int[][] board) {
-        for (int i = 0; i < board.length; i++) {
-            for (int j = 0; j < board[0].length; j++) {
-                if (board[j][i] == N_GUESS_Y_SUB) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    public static void playGame(int[][][] board) {
+    public static void playGame(int[][][] board, int[] subNums) {
         while (true) {
-            playTurnPlayer(board[BOARD_INDEX_COMP]);
-            if (isGameOver(board[BOARD_INDEX_COMP])) {
+            playTurnPlayer(board[BOARD_INDEX_COMP], subNums);
+            if (subNums[BOARD_INDEX_COMP] == 0) {
                 System.out.println("You won the game!");
                 return;
             }
 
-            playTurnComputer(board[BOARD_INDEX_PLAYER]);
-            if (isGameOver(board[BOARD_INDEX_PLAYER])) {
+            playTurnComputer(board[BOARD_INDEX_PLAYER], subNums);
+            if (subNums[BOARD_INDEX_PLAYER] == 0) {
                 System.out.println("You lost ):");
                 return;
             }
@@ -487,9 +529,10 @@ public class Main {
      * play a battleship game between a player and a computer
      */
     public static void battleshipGame() {
-        int[][][] board = initBoard();
+        int[] subNums = new int[2];
+        int[][][] board = initBoard(subNums);
 
-        playGame(board);
+        playGame(board, subNums);
     }
 
     public static void main(String[] args) {
