@@ -15,8 +15,8 @@ public class Main {
     static final char INPUT_DIVIDER = 'X';
     static final String INPUT_DIVIDER_COORDINATE = ", ";
 
-    static final int SUB_INDEX_X = 0;
-    static final int SUB_INDEX_Y = 1;
+    static final int SUB_INDEX_ROW = 0;
+    static final int SUB_INDEX_COL = 1;
     static final int SUB_INDEX_ORIENTATION = 2;
     static final int ORIENTATION_HORIZONTAL = 0;
     static final int ORIENTATION_VERTICAL = 1;
@@ -160,7 +160,7 @@ public class Main {
      * input and parse the location and the orientation of a sub
      *
      * @param size the size of the sub
-     * @return the sub as an array of size 3: [x, y, orientation] (x and y of the top left corner of the sub)
+     * @return the sub as an array of size 3: [row, column, orientation] (row and column of the top left corner of the sub)
      */
     public static int[] inputAndParseCoordinatesOrientation(int size) {
         System.out.println("Enter location and orientation for battleship of size " + size);
@@ -168,37 +168,37 @@ public class Main {
     }
 
     /**
-     * check if the tile (x, y) in the board is currently empty
+     * check if the tile (row, col) in the board is currently empty
      *
      * @param board the board
-     * @param x     the x coordinate
-     * @param y     the y coordinate
+     * @param row     the tile's row
+     * @param col     the tile's column
      * @return whether the spot is available or not
      */
-    public static boolean notOverlapping(int[][] board, int x, int y) {
-        return board[y][x] == N_GUESS_N_SUB;
+    public static boolean notOverlapping(int[][] board, int row, int col) {
+        return board[row][col] == N_GUESS_N_SUB;
     }
 
     /**
      * check if the surrounding of a given tile is empty
      *
      * @param board the board
-     * @param x     the tile's x coordinate
-     * @param y     the tile's x coordinate
+     * @param row     the tile's row
+     * @param col     the tile's column
      * @return whether the tile's surrounding is valid for sub placement or not
      */
-    public static boolean validSurrounding(int[][] board, int x, int y) {
-        boolean rightEdge = (x == board[0].length - 1);
-        boolean leftEdge = (x == 0);
-        boolean bottomEdge = (y == board.length - 1);
-        boolean topEdge = (y == 0);
-        int startX = leftEdge ? x : x - 1;
-        int endX = rightEdge ? x : x + 1;
-        int startY = topEdge ? y : y - 1;
-        int endY = bottomEdge ? y : y + 1;
-        for (int i = startX; i <= endX; i++) {
-            for (int j = startY; j <= endY; j++) {
-                if (board[j][i] == N_GUESS_Y_SUB) {
+    public static boolean validSurrounding(int[][] board, int row, int col) {
+        boolean rightEdge = (col == board[0].length - 1);
+        boolean leftEdge = (col == 0);
+        boolean bottomEdge = (row == board.length - 1);
+        boolean topEdge = (row == 0);
+        int startRow = topEdge ? row : row - 1;
+        int endRow = bottomEdge ? row : row + 1;
+        int startCol = leftEdge ? col : col - 1;
+        int endCol = rightEdge ? col : col + 1;
+        for (int i = startRow; i <= endRow; i++) {
+            for (int j = startCol; j <= endCol; j++) {
+                if (board[i][j] == N_GUESS_Y_SUB) {
                     return false;
                 }
             }
@@ -210,12 +210,12 @@ public class Main {
         return tile == Y_GUESS_N_SUB || tile == Y_GUESS_Y_SUB;
     }
 
-    public static boolean checkValidAttackTile(int[][] board, int x, int y) {
-        if (!(x >= 0 && x < board[0].length && y >= 0 && y < board.length)) {
+    public static boolean checkValidAttackTile(int[][] board, int row, int col) {
+        if (!(row >= 0 && row < board.length && col >= 0 && col < board[0].length)) {
             System.out.println("Illegal tile, try again!");
             return false;
         }
-        if (guessed(board[y][x])) {
+        if (guessed(board[row][col])) {
             System.out.println("Tile already attacked, try again!");
             return false;
         }
@@ -243,8 +243,8 @@ public class Main {
         }
 
         // check illegal tile
-        if (sub[SUB_INDEX_X] >= board[0].length || sub[SUB_INDEX_X] < 0 ||
-                sub[SUB_INDEX_Y] >= board.length || sub[SUB_INDEX_Y] < 0) {
+        if (sub[SUB_INDEX_ROW] >= board.length || sub[SUB_INDEX_ROW] < 0 ||
+                sub[SUB_INDEX_COL] >= board[0].length || sub[SUB_INDEX_COL] < 0) {
             if (!mute) {
                 System.out.println("Illegal tile, try again!");
             }
@@ -253,14 +253,14 @@ public class Main {
 
         // check sub in boundaries
         if (sub[SUB_INDEX_ORIENTATION] == ORIENTATION_HORIZONTAL) {
-            if (sub[SUB_INDEX_X] + size > board[0].length) {
+            if (sub[SUB_INDEX_COL] + size > board[0].length) {
                 if (!mute) {
                     System.out.println("Battleship exceeds the boundaries of the board, try again!");
                 }
                 return false;
             }
         } else {
-            if (sub[SUB_INDEX_Y] + size > board.length) {
+            if (sub[SUB_INDEX_ROW] + size > board.length) {
                 if (!mute) {
                     System.out.println("Battleship exceeds the boundaries of the board, try again!");
                 }
@@ -270,11 +270,11 @@ public class Main {
 
         // check battleship overlaps another battleships or adjacent
         for (int i = 0; i < size; i++) {
-            int currLocationX = sub[SUB_INDEX_X] + (sub[SUB_INDEX_ORIENTATION] == ORIENTATION_HORIZONTAL ? i : 0);
-            int currLocationY = sub[SUB_INDEX_Y] + (sub[SUB_INDEX_ORIENTATION] == ORIENTATION_VERTICAL ? i : 0);
+            int currLocationRow = sub[SUB_INDEX_ROW] + (sub[SUB_INDEX_ORIENTATION] == ORIENTATION_VERTICAL ? i : 0);
+            int currLocationCol = sub[SUB_INDEX_COL] + (sub[SUB_INDEX_ORIENTATION] == ORIENTATION_HORIZONTAL ? i : 0);
 
             // check overlaps
-            if (!notOverlapping(board, currLocationX, currLocationY)) {
+            if (!notOverlapping(board, currLocationRow, currLocationCol)) {
                 if (!mute) {
                     System.out.println("Battleship overlaps another battleship, try again!");
                 }
@@ -282,7 +282,7 @@ public class Main {
             }
 
             // check adjacent
-            if (!validSurrounding(board, currLocationX, currLocationY)) {
+            if (!validSurrounding(board, currLocationRow, currLocationCol)) {
                 if (!mute) {
                     System.out.println("Adjacent battleship detected, try again!");
                 }
@@ -303,9 +303,9 @@ public class Main {
     public static void placeSub(int[][] board, int[] sub, int size) {
         for (int i = 0; i < size; i++) {
             if (sub[SUB_INDEX_ORIENTATION] == ORIENTATION_VERTICAL) {
-                board[sub[SUB_INDEX_Y] + i][sub[SUB_INDEX_X]] = N_GUESS_Y_SUB;
+                board[sub[SUB_INDEX_ROW] + i][sub[SUB_INDEX_COL]] = N_GUESS_Y_SUB;
             } else {
-                board[sub[SUB_INDEX_Y]][sub[SUB_INDEX_X] + i] = N_GUESS_Y_SUB;
+                board[sub[SUB_INDEX_ROW]][sub[SUB_INDEX_COL] + i] = N_GUESS_Y_SUB;
             }
         }
     }
@@ -319,12 +319,12 @@ public class Main {
      */
     public static int[] getComputerSub(int[][] board, int size) {
         int[] sub = new int[3];
-        int m = board[0].length;
-        int n = board.length;
+        int row = board.length;
+        int col = board[0].length;
 
         do {
-            sub[0] = rnd.nextInt(m);
-            sub[1] = rnd.nextInt(n);
+            sub[0] = rnd.nextInt(row);
+            sub[1] = rnd.nextInt(col);
             sub[2] = rnd.nextInt(2);
         } while (!checkValidSub(board, sub, size, true));
 
@@ -442,40 +442,40 @@ public class Main {
         System.out.println();
     }
 
-    public static boolean drownedOneDirection(int[][] board, int x, int y, int incX, int incY) {
-        while (!(x < 0 || x >= board[0].length || y < 0 || y >= board.length)) {
-            if (board[y][x] == N_GUESS_N_SUB || board[y][x] == Y_GUESS_N_SUB) {
+    public static boolean drownedOneDirection(int[][] board, int row, int col, int incRow, int incCol) {
+        while (!(row < 0 || row >= board.length || col < 0 || col >= board[0].length)) {
+            if (board[row][col] == N_GUESS_N_SUB || board[row][col] == Y_GUESS_N_SUB) {
                 return true;
             }
-            if (board[y][x] == N_GUESS_Y_SUB) {
+            if (board[row][col] == N_GUESS_Y_SUB) {
                 return false;
             }
 
-            x += incX;
-            y += incY;
+            row += incRow;
+            col += incCol;
         }
 
         return true;
     }
 
-    public static boolean drowned(int[][] board, int x, int y) {
-        boolean right = drownedOneDirection(board, x, y, 1, 0);
-        boolean left = drownedOneDirection(board, x, y, -1, 0);
-        boolean up = drownedOneDirection(board, x, y, 0, -1);
-        boolean down = drownedOneDirection(board, x, y, 0, 1);
+    public static boolean drowned(int[][] board, int row, int col) {
+        boolean down = drownedOneDirection(board, row, col, 1, 0);
+        boolean up = drownedOneDirection(board, row, col, -1, 0);
+        boolean left = drownedOneDirection(board, row, col, 0, -1);
+        boolean right = drownedOneDirection(board, row, col, 0, 1);
 
         return right && left && up && down;
     }
 
-    public static void attackTile(int[][] board, int x, int y, int[] subNums, boolean player) {
-        if (board[y][x] == N_GUESS_N_SUB) {
+    public static void attackTile(int[][] board, int row, int col, int[] subNums, boolean player) {
+        if (board[row][col] == N_GUESS_N_SUB) {
             System.out.println("That is a miss!");
-            board[y][x] = Y_GUESS_N_SUB;
+            board[row][col] = Y_GUESS_N_SUB;
         } else {
             int playerIndex = player ? BOARD_INDEX_COMP : BOARD_INDEX_PLAYER;
             System.out.println("That is a hit!");
-            board[y][x] = Y_GUESS_Y_SUB;
-            if (drowned(board, x, y)) {
+            board[row][col] = Y_GUESS_Y_SUB;
+            if (drowned(board, row, col)) {
                 subNums[playerIndex]--;
                 if (player) {
                     System.out.println("The computer's battleship has been drowned, " + subNums[playerIndex] + " more battleship to go!");
@@ -501,8 +501,8 @@ public class Main {
     public static void playTurnComputer(int[][] board, int[] subNums) {
         int[] tile = new int[2];
         do {
-            tile[0] = rnd.nextInt(board[0].length);  // generate x coordinate
-            tile[1] = rnd.nextInt(board.length);
+            tile[0] = rnd.nextInt(board.length);  // generate x coordinate
+            tile[1] = rnd.nextInt(board[0].length);
         } while (!checkValidAttackTile(board, tile[0], tile[1]));
         System.out.println("The computer attacked (" + tile[0] + ", " + tile[1] + ")");
         attackTile(board, tile[0], tile[1], subNums, false);
