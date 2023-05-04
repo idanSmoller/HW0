@@ -32,7 +32,7 @@ public class Main {
      * @return the int array
      */
     public static int[] parseNumXNum(String str) {
-        int i = 0;
+        int i;
         for (i = 0; i < str.length(); i++) {
             if (str.charAt(i) == INPUT_DIVIDER) {
                 break;
@@ -58,7 +58,7 @@ public class Main {
     public static int[] parseCoordinateOrientation(String str) {
         int i = 0;
         int found = 0;
-        int ret[] = new int[3];
+        int[] ret = new int[3];
         int prev = 0;
 
         while (found < 2) {
@@ -84,7 +84,7 @@ public class Main {
     public static int[] parseCoordinate(String str) {
         int i = 0;
         int found = 0;
-        int ret[] = new int[2];
+        int[] ret = new int[2];
         int prev = 0;
 
         while (found < 1) {
@@ -130,7 +130,7 @@ public class Main {
      */
     public static int[] inputAndParseSubSizes(int[] boardSize) {
         int[] subSizes = new int[getSubSizesArrLength(boardSize)];
-        System.out.println("Enter the battleship sizes");
+        System.out.println("Enter the battleships sizes");
         String subSizesString = scanner.nextLine();
         int wordStart = 0;
         for (int i = 0; i < subSizesString.length(); i++) {
@@ -149,21 +149,27 @@ public class Main {
     /**
      * input and parse the location of a guess
      *
+     * @param mute_ask true if shouldn't be printed message asking for input. false otherwise.
      * @return the sub as an array of size 2: [x, y]
      */
-    public static int[] inputAndParseCoordinates() {
-        System.out.println("Enter a tile to attack");
+    public static int[] inputAndParseCoordinates(boolean mute_ask) {
+        if(!mute_ask){
+            System.out.println("Enter a tile to attack");
+        }
         return parseCoordinate(scanner.nextLine());
     }
 
     /**
      * input and parse the location and the orientation of a sub
      *
+     * @param mute_ask true if shouldn't be printed message asking for input. false otherwise.
      * @param size the size of the sub
      * @return the sub as an array of size 3: [row, column, orientation] (row and column of the top left corner of the sub)
      */
-    public static int[] inputAndParseCoordinatesOrientation(int size) {
-        System.out.println("Enter location and orientation for battleship of size " + size);
+    public static int[] inputAndParseCoordinatesOrientation(int size, boolean mute_ask) {
+        if(!mute_ask){
+            System.out.println("Enter location and orientation for battleship of size " + size);
+        }
         return parseCoordinateOrientation(scanner.nextLine());
     }
 
@@ -206,18 +212,37 @@ public class Main {
         return true;
     }
 
+    /**
+     * returns whether a tile (int) was guessed or not
+     *
+     * @param tile int to check if was guessed.
+     * @return true if the tile was guessed, false otherwise.
+     */
     public static boolean guessed(int tile) {
         return tile == Y_GUESS_N_SUB || tile == Y_GUESS_Y_SUB;
     }
 
-    public static boolean checkValidAttackTile(int[][] board, int row, int col) {
+    /**
+     * check and return whether a tile is valid to attack. if not, print the appropriate error (if not muted).
+     *
+     * @param board the boar game
+     * @param row the row of the desired tile to attack
+     * @param col the column of the desired tile to attack
+     * @param mute true if shouldn't print any message, false if should print errors.
+     * @return boolean. true if it is valid to attack the given tile, false otherwise.
+     */
+    public static boolean checkValidAttackTile(int[][] board, int row, int col, boolean mute) {
         if (!(row >= 0 && row < board.length && col >= 0 && col < board[0].length)) {
-            System.out.println("Illegal tile, try again!");
+            if (!mute) {
+                System.out.println("Illegal tile, try again!");
+            }
             return false;
         }
         if (guessed(board[row][col])) {
-            System.out.println("Tile already attacked, try again!");
-            return false;
+            if (!mute) {
+                System.out.println("Tile already attacked, try again!");
+            }
+                return false;
         }
 
         return true;
@@ -268,7 +293,7 @@ public class Main {
             }
         }
 
-        // check battleship overlaps another battleships or adjacent
+        // check battleship overlaps another battleships
         for (int i = 0; i < size; i++) {
             int currLocationRow = sub[SUB_INDEX_ROW] + (sub[SUB_INDEX_ORIENTATION] == ORIENTATION_VERTICAL ? i : 0);
             int currLocationCol = sub[SUB_INDEX_COL] + (sub[SUB_INDEX_ORIENTATION] == ORIENTATION_HORIZONTAL ? i : 0);
@@ -280,8 +305,12 @@ public class Main {
                 }
                 return false;
             }
+        }
 
-            // check adjacent
+        // check battleship adjacent to another battleships
+        for (int i = 0; i < size; i++) {
+            int currLocationRow = sub[SUB_INDEX_ROW] + (sub[SUB_INDEX_ORIENTATION] == ORIENTATION_VERTICAL ? i : 0);
+            int currLocationCol = sub[SUB_INDEX_COL] + (sub[SUB_INDEX_ORIENTATION] == ORIENTATION_HORIZONTAL ? i : 0);
             if (!validSurrounding(board, currLocationRow, currLocationCol)) {
                 if (!mute) {
                     System.out.println("Adjacent battleship detected, try again!");
@@ -339,12 +368,10 @@ public class Main {
      * @return the created sub
      */
     public static int[] getPlayerSub(int[][] board, int size) {
-        int[] sub;
-        do {
-            sub = inputAndParseCoordinatesOrientation(size);
-
-        } while (!checkValidSub(board, sub, size, false));
-
+        int[] sub = inputAndParseCoordinatesOrientation(size, false);
+        while (!checkValidSub(board, sub, size, false)) {
+            sub = inputAndParseCoordinatesOrientation(size, true);
+        }
         return sub;
     }
 
@@ -374,6 +401,12 @@ public class Main {
         }
     }
 
+    /**
+     * count number of subs for each player and place it in subNums
+     *
+     * @param subSizes histogram: value x in index i means there are x subs of size i for each player
+     * @param subNums an array to place the sizes in them
+     */
     public static void countSubs(int[] subSizes, int[] subNums) {
         int sum = 0;
         for (int size : subSizes) {
@@ -384,8 +417,10 @@ public class Main {
     }
 
     /**
-     * initialize the boards for the player and the computer - input subs and place them on the board
+     * initialize the boards for the player and the computer - input subs and place them on the board.
+     * Also place the number of subs for each player in subNums
      *
+     * @param subNums array in which updates the number of subs for each player
      * @return the created board
      */
     public static int[][][] initBoard(int[] subNums) {
@@ -394,7 +429,6 @@ public class Main {
         int[] subSizes = inputAndParseSubSizes(boardSize);
 
         countSubs(subSizes, subNums);
-
         inputSubs(board, subSizes);
 
         return board;
@@ -410,11 +444,11 @@ public class Main {
     public static char tileToChar(int tile, boolean player) {
         switch (tile) {
             case N_GUESS_N_SUB:
-                return '-';
+                return '–';
             case N_GUESS_Y_SUB:
-                return player ? '#' : '-';
+                return player ? '#' : '–';
             case Y_GUESS_N_SUB:
-                return player ? '-' : 'X';
+                return player ? '–' : 'X';
             case Y_GUESS_Y_SUB:
                 return player ? 'X' : 'V';
             default:
@@ -422,26 +456,74 @@ public class Main {
         }
     }
 
+    /**
+     * count how many digits are in a positive integer
+     *
+     * @param num the integer to check
+     * @return how many digits are in num
+     */
+    public static int countDigit(int num) {
+        if (num == 0) {
+            return 1;
+        }
+        int counter = 0;
+        while (num > 0) {
+            counter++;
+            num /= 10;
+        }
+        return counter;
+    }
+
+    /**
+     * print spaces (without down line). it does this 'times' times
+     *
+     * @param times how many times to print space
+     */
+    public static void printNumSpaces(int times){
+        for(int i = 0; i < times; i++){
+            System.out.print(" ");
+        }
+    }
+
+    /**
+     * print the current state pf the given board (also depends on the player the board belonged to)
+     *
+     * @param board the board to print
+     * @param player the player the board belongs to
+     */
     public static void printBoard(int[][] board, boolean player) {
         // todo: double digit shit
-        System.out.print(" ");
-
+        int digitNumRow = countDigit(board.length - 1);
+        int digitNumCol = countDigit(board[0].length - 1);
         // print the first row of indexes
+        printNumSpaces(digitNumRow);
         for (int i = 0; i < board[0].length; i++) {
-            System.out.print(" " + Integer.toString(i));
+            printNumSpaces(digitNumCol - countDigit(i) + 1);
+            System.out.print(i);
         }
         System.out.println();
-        int count = 0;
         for (int i = 0; i < board.length; i++) {
-            System.out.print(Integer.toString(i));
+            printNumSpaces(digitNumRow - countDigit(i));
+            System.out.print(i);
             for (int j = 0; j < board[0].length; j++) {
-                System.out.print(" " + tileToChar(board[i][j], player));
+                printNumSpaces(digitNumCol);
+                System.out.print(tileToChar(board[i][j], player));
             }
             System.out.println();
         }
         System.out.println();
     }
 
+    /**
+     * check if a sub has a continuation in a specific direction from a specific tile
+     *
+     * @param board current board
+     * @param row row of the tile to check
+     * @param col column of the tile to check
+     * @param incRow 1 if to check to the right, -1 if to check to the left, 0 otherwise
+     * @param incCol 1 if to check to the bottom, -1 if to check to the top, 0 otherwise
+     * @return true if there is a continuation in that direction, false otherwise
+     */
     public static boolean drownedOneDirection(int[][] board, int row, int col, int incRow, int incCol) {
         while (!(row < 0 || row >= board.length || col < 0 || col >= board[0].length)) {
             if (board[row][col] == N_GUESS_N_SUB || board[row][col] == Y_GUESS_N_SUB) {
@@ -458,6 +540,14 @@ public class Main {
         return true;
     }
 
+    /**
+     * check if a sub which the given tile is part of, was drowned
+     *
+     * @param board current board
+     * @param row row of tile to check
+     * @param col column of tile to check
+     * @return true if sub was drowned, false otherwise
+     */
     public static boolean drowned(int[][] board, int row, int col) {
         boolean down = drownedOneDirection(board, row, col, 1, 0);
         boolean up = drownedOneDirection(board, row, col, -1, 0);
@@ -467,6 +557,15 @@ public class Main {
         return right && left && up && down;
     }
 
+    /**
+     * play an attack (print and change board), assuming the play is valid.
+     *
+     * @param board current board
+     * @param row row of tile to attack
+     * @param col column of tile to attack
+     * @param subNums an array that contains how many subs where left fot each player
+     * @param player true if human is attacking, false if computer
+     */
     public static void attackTile(int[][] board, int row, int col, int[] subNums, boolean player) {
         if (board[row][col] == N_GUESS_N_SUB) {
             System.out.println("That is a miss!");
@@ -478,7 +577,8 @@ public class Main {
             if (drowned(board, row, col)) {
                 subNums[playerIndex]--;
                 if (player) {
-                    System.out.println("The computer's battleship has been drowned, " + subNums[playerIndex] + " more battleship to go!");
+                    System.out.println("The computer's battleship has been drowned, " + subNums[playerIndex] +
+                            " more battleships to go!");
                 } else {
                     System.out.println("Your battleship has been drowned, you have left " + subNums[playerIndex] + " more battleships!");
                 }
@@ -486,24 +586,35 @@ public class Main {
         }
     }
 
+    /**
+     * play turn of human
+     *
+     * @param board current board
+     * @param subNums an array with current num of subs for each player
+     */
     public static void playTurnPlayer(int[][] board, int[] subNums) {
         System.out.println("Your current guessing board:");
         printBoard(board, false);
 
-        int[] tile;
-        do {
-            tile = inputAndParseCoordinates();
-        } while (!checkValidAttackTile(board, tile[0], tile[1]));
-
+        int[] tile = inputAndParseCoordinates(false);
+        while (!checkValidAttackTile(board, tile[0], tile[1], false)){
+            tile = inputAndParseCoordinates(true);
+        }
         attackTile(board, tile[0], tile[1], subNums, true);
     }
 
+    /**
+     * play turn of computer
+     *
+     * @param board current board
+     * @param subNums an array with current num of subs for each player
+     */
     public static void playTurnComputer(int[][] board, int[] subNums) {
         int[] tile = new int[2];
         do {
             tile[0] = rnd.nextInt(board.length);  // generate x coordinate
             tile[1] = rnd.nextInt(board[0].length);
-        } while (!checkValidAttackTile(board, tile[0], tile[1]));
+        } while (!checkValidAttackTile(board, tile[0], tile[1], true));
         System.out.println("The computer attacked (" + tile[0] + ", " + tile[1] + ")");
         attackTile(board, tile[0], tile[1], subNums, false);
         System.out.println("Your current game board:");
@@ -511,6 +622,12 @@ public class Main {
 
     }
 
+    /**
+     * play game (not including init of board) until the game ends
+     *
+     * @param board current board (after initialization)
+     * @param subNums an array with current num of subs for each player (after initialization)
+     */
     public static void playGame(int[][][] board, int[] subNums) {
         while (true) {
             playTurnPlayer(board[BOARD_INDEX_COMP], subNums);
